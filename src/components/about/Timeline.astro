@@ -1,0 +1,69 @@
+---
+interface TimelineEntry {
+  company: string;
+  role: string;
+  period: string;
+  description: string;
+}
+
+const experience: TimelineEntry[] = [
+  {
+    company: 'Your Accessible Flight',
+    role: 'CTO & R&D',
+    period: 'Nov 2024 — Present',
+    description:
+      'Co-founded and lead development of an AI-powered platform for barrier-free air travel, verifying mobility aid compatibility and planning accessible journeys (iOS beta at youraccessibleflight.info). Built B2C (Swift/SwiftUI + Android) and B2B apps, owning architecture, product, and migration from Firebase to custom backend. Launched RAG-based intelligent chat assistant and exploring computer vision + autonomous agents for proactive accessibility features. Secured EU grants and multiple innovation awards.',
+  },
+  {
+    company: 'TabTrader BV',
+    role: 'iOS Engineer',
+    period: 'Aug 2019 — Present',
+    description:
+      'Built a high-performance custom charting engine from scratch with Core Graphics for real-time crypto visualization, outperforming competitors in speed and responsiveness. Owned the flagship real-time trading interface (orderbook, candles, positions) with zero crashes and smooth performance on legacy devices. Led migration from UIKit to SwiftUI + Combine, refactoring >50% of the app, achieving 99.8% crash-free sessions and 4.7/5 App Store rating. Mentored team, owned ~50% of codebase, and drove features that boosted subscriptions ~40%.',
+  },
+  {
+    company: 'Echo Base Global',
+    role: 'iOS Engineer',
+    period: 'Feb 2025 — Aug 2025',
+    description:
+      'Contributed iOS engineering expertise (Swift, SwiftUI, performance optimization) to mobile product development in a collaborative team setting.',
+  },
+  {
+    company: 'AURA Band',
+    role: 'Lead iOS Engineer',
+    period: 'Sep 2018 — Aug 2019',
+    description:
+      'Architected and developed the full iOS + Apple Watch companion app for AURA Band wearable from scratch, with >80% unit test coverage and deep HealthKit integration. Engineered reliable BLE stack for real-time body composition data, pairing, firmware updates, and error handling. Led technical support and rapid OTA fixes during CES 2019 launch, ensuring flawless demos and early market success.',
+  },
+  {
+    company: 'Motorsport.com',
+    role: 'Senior/Lead iOS Engineer',
+    period: 'Aug 2017 — May 2018',
+    description:
+      'Led development of Apple TV app, flagship iOS news/results app, and native Swift rewrite of legacy React Native app for better performance and stability. Mentored mobile team (iOS + Android), guided juniors, and accelerated delivery in fast-paced environment. Established CI/CD, PR workflows, automated testing, and technical documentation from the ground up.',
+  },
+  {
+    company: 'IC Realtime',
+    role: 'iOS Developer',
+    period: 'Sep 2014 — Aug 2017',
+    description:
+      'Independently shipped three iOS surveillance apps: school monitoring, 360° panoramic camera companion, and unified multi-camera manager. Implemented low-latency OpenGL ES video rendering and reliable BLE device control. Improved stability through optimizations and testing; pioneered team processes including environments, workflows, and release standards.',
+  },
+];
+---
+
+<div class="relative border-l-2 border-zinc-200 pl-8 dark:border-zinc-700">
+  {experience.map((entry, i) => (
+    <div class:list={['relative', i > 0 && 'mt-12']}>
+      <!-- Dot -->
+      <div class="absolute -left-[calc(2rem+5px)] top-1 h-3 w-3 rounded-full border-2 border-accent-500 bg-zinc-50 dark:bg-zinc-950" />
+
+      <p class="text-sm font-medium text-accent-600 dark:text-accent-400">{entry.period}</p>
+      <h3 class="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">{entry.role}</h3>
+      <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{entry.company}</p>
+      <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        {entry.description}
+      </p>
+    </div>
+  ))}
+</div>

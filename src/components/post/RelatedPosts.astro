@@ -1,0 +1,21 @@
+---
+import PostCard from '../PostCard.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  posts: CollectionEntry<'posts'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+{posts.length > 0 && (
+  <section class="mt-16 border-t border-zinc-200 pt-12 dark:border-zinc-800">
+    <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Related Posts</h2>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {posts.map((post) => (
+        <PostCard post={post} />
+      ))}
+    </div>
+  </section>
+)}

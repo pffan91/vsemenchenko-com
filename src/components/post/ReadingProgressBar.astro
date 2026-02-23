@@ -1,0 +1,28 @@
+---
+
+---
+
+<div
+  id="reading-progress"
+  class="fixed left-0 top-0 z-50 h-0.5 bg-accent-500 transition-[width] duration-150 ease-out"
+  style="width: 0%;"
+  role="progressbar"
+  aria-label="Reading progress"
+  aria-valuenow="0"
+  aria-valuemin="0"
+  aria-valuemax="100"
+></div>
+
+<script is:inline>
+  (function () {
+    var bar = document.getElementById('reading-progress');
+    if (!bar) return;
+    window.addEventListener('scroll', function () {
+      var scrollTop = window.scrollY;
+      var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+      bar.style.width = pct + '%';
+      bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    }, { passive: true });
+  })();
+</script>

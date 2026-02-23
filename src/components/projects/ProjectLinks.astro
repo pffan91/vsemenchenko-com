@@ -1,0 +1,42 @@
+---
+interface Link {
+  label: string;
+  url: string;
+  type: 'appstore' | 'playstore' | 'github' | 'website' | 'demo' | 'video' | 'other';
+}
+
+interface Props {
+  links: Link[];
+}
+
+const { links } = Astro.props;
+---
+
+<div class="flex flex-wrap gap-3">
+  {links.map((link) => (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-accent-300 hover:text-accent-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-accent-700 dark:hover:text-accent-400"
+    >
+      {link.label}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+        <polyline points="15 3 21 3 21 9" />
+        <line x1="10" y1="14" x2="21" y2="3" />
+      </svg>
+    </a>
+  ))}
+</div>

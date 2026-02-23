@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#3f3f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="280" text-anchor="middle" font-family="system-ui, sans-serif" font-size="48" font-weight="bold" fill="#fafafa">Vladyslav Semenchenko</text>
+  <text x="600" y="340" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#a1a1aa">Senior iOS Engineer</text>
+  <rect x="520" y="380" width="160" height="4" rx="2" fill="#7c3aed"/>
+</svg>

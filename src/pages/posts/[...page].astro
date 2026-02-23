@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getPublishedPosts } from '../../utils/posts';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getPublishedPosts();
+  return paginate(posts, { pageSize: 10 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+
+<BaseLayout title={`Posts${page.currentPage > 1 ? ` — Page ${page.currentPage}` : ''} — Vladyslav Semenchenko`} description="Articles on iOS development, Swift, SwiftUI, and software engineering.">
+  <section class="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:pt-16 sm:pb-16">
+    <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+      Posts
+    </h1>
+    <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+      Writing about iOS development, Swift, AI and Software Engineering.
+    </p>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {page.data.map((post) => (
+        <PostCard post={post} />
+      ))}
+    </div>
+
+    {page.lastPage > 1 && (
+      <Pagination
+        currentPage={page.currentPage}
+        lastPage={page.lastPage}
+        prevUrl={page.url.prev}
+        nextUrl={page.url.next}
+      />
+    )}
+  </section>
+</BaseLayout>

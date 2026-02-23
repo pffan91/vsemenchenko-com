@@ -1,0 +1,38 @@
+---
+import PostCard from '../PostCard.astro';
+import { getRecentPosts } from '../../utils/posts';
+
+const posts = await getRecentPosts(3);
+---
+
+<section class="mx-auto max-w-5xl px-4 pt-8 pb-12 sm:pt-12 sm:pb-16">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-3xl">
+        Recent Posts
+      </h2>
+      <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+        Thoughts on iOS development, Swift, AI and Software Engineering.
+      </p>
+    </div>
+    <a
+      href="/posts"
+      class="hidden text-sm font-medium text-accent-600 hover:text-accent-700 dark:text-accent-400 dark:hover:text-accent-300 sm:block"
+    >
+      View all &rarr;
+    </a>
+  </div>
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {posts.map((post) => (
+      <PostCard post={post} />
+    ))}
+  </div>
+  <div class="mt-6 text-center sm:hidden">
+    <a
+      href="/posts"
+      class="text-sm font-medium text-accent-600 hover:text-accent-700 dark:text-accent-400 dark:hover:text-accent-300"
+    >
+      View all posts &rarr;
+    </a>
+  </div>
+</section>

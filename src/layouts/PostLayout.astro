@@ -1,0 +1,27 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+}
+
+const { title, description, ogImage } = Astro.props;
+---
+
+<BaseLayout title={`${title} — Vladyslav Semenchenko`} description={description} ogImage={ogImage} ogType="article">
+  <slot name="head" slot="head" />
+  <article class="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:pt-16 sm:pb-16">
+    <slot name="header" />
+    <div class="mt-10 lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
+      <div class="prose prose-zinc prose-violet max-w-prose dark:prose-invert prose-headings:scroll-mt-20 prose-a:text-accent-600 dark:prose-a:text-accent-400" data-pagefind-body>
+        <slot />
+      </div>
+      <aside class="hidden lg:block">
+        <slot name="sidebar" />
+      </aside>
+    </div>
+    <slot name="footer" />
+  </article>
+</BaseLayout>

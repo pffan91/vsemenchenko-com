@@ -1,0 +1,65 @@
+---
+import { SITE, SOCIAL, AUTHOR } from '../../site.config';
+
+interface Props {
+  type: 'person' | 'article' | 'project';
+  title?: string;
+  description?: string;
+  publishDate?: Date;
+  updatedDate?: Date;
+  url?: string;
+  image?: string;
+}
+
+const { type, title, description, publishDate, updatedDate, url, image } = Astro.props;
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: AUTHOR.name,
+  jobTitle: AUTHOR.jobTitle,
+  url: SITE.url,
+  sameAs: [
+    SOCIAL.github,
+    SOCIAL.linkedin,
+  ],
+};
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  datePublished: publishDate?.toISOString(),
+  dateModified: (updatedDate ?? publishDate)?.toISOString(),
+  url,
+  image,
+  author: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: SITE.url,
+  },
+};
+
+const projectSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: title,
+  description,
+  url,
+  author: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: SITE.url,
+  },
+};
+
+const schemas: Record<string, object> = {
+  person: personSchema,
+  article: articleSchema,
+  project: projectSchema,
+};
+const schema = schemas[type];
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

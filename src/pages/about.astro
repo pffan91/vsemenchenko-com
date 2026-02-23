@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Timeline from '../components/about/Timeline.astro';
+---
+
+<BaseLayout title="About — Vladyslav Semenchenko" description="Senior iOS Engineer with 12+ years of experience in Swift, SwiftUI, and complex systems architecture.">
+  <section class="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:pt-16 sm:pb-16">
+    <div class="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+      <img
+        src="/images/profile.jpg"
+        alt="Vladyslav Semenchenko"
+        width="160"
+        height="160"
+        class="mx-auto mb-6 block h-32 w-32 rounded-full object-cover sm:float-left sm:mb-4 sm:mr-6 sm:h-40 sm:w-40"
+      />
+      <p class="mt-4">
+        Hi! I'm Vladyslav - an iOS engineer with 12+ years of experience building apps people rely on
+        every day. I currently work at <strong class="text-zinc-900 dark:text-zinc-100">TabTrader BV</strong>,
+        where I develop a high-performance cryptocurrency trading platform used by over 500 000 people.
+        In parallel, I serve as CTO at <strong class="text-zinc-900 dark:text-zinc-100">Your Accessible Flight</strong>,
+        an accessibility-focused travel startup.
+      </p>
+      <p class="mt-4">
+        My core expertise spans Swift and SwiftUI, fintech charting engines (Core Graphics, Metal),
+        BLE/IoT hardware integration, and Swift Concurrency. I care deeply about architecture -
+        MVVM, Clean Architecture, and testable code - and I've led teams as well as shipped solo.
+      </p>
+      <p class="mt-4">
+        Outside of engineering, I'm into music, artificial intelligence, and robotics.
+        I find that cross-disciplinary curiosity makes for better software.
+      </p>
+    </div>
+
+    <h2 class="mt-16 text-2xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-3xl">Skills</h2>
+    <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      {[
+        'Swift',
+        'Objective-C',
+        'SwiftUI / Combine',
+        'Core Graphics / Metal',
+        'Swift Concurrency',
+        'BLE / Hardware',
+        'MVVM / Clean Architecture',
+        'Python / C++',
+        'CI/CD / Fastlane',
+      ].map((skill) => (
+        <div class="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          {skill}
+        </div>
+      ))}
+    </div>
+
+    <h2 class="mt-16 text-2xl font-bold text-zinc-900 dark:text-zinc-100 sm:text-3xl">Experience</h2>
+    <div class="mt-8">
+      <Timeline />
+    </div>
+  </section>
+</BaseLayout>

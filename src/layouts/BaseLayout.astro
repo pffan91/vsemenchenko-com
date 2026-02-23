@@ -1,0 +1,75 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+}
+
+const {
+  title,
+  description = 'Senior iOS Engineer — Swift, SwiftUI, and complex systems architecture.',
+  ogImage = '/og-default.svg',
+  ogType = 'website',
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Vladyslav Semenchenko" href={new URL('/rss.xml', Astro.site)} />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
+
+    <!-- Dark mode: sync before first paint to prevent FOIC -->
+    <script is:inline>
+      (function () {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    <slot name="head" />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent-600 focus:px-4 focus:py-2 focus:text-white"
+    >
+      Skip to content
+    </a>
+    <Header />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

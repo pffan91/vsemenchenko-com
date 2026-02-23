@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import "@fontsource-variable/inter";
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-accent-50: var(--color-violet-50);
+  --color-accent-100: var(--color-violet-100);
+  --color-accent-200: var(--color-violet-200);
+  --color-accent-300: var(--color-violet-300);
+  --color-accent-400: var(--color-violet-400);
+  --color-accent-500: var(--color-violet-500);
+  --color-accent-600: var(--color-violet-600);
+  --color-accent-700: var(--color-violet-700);
+  --color-accent-800: var(--color-violet-800);
+  --color-accent-900: var(--color-violet-900);
+  --color-accent-950: var(--color-violet-950);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100;
+  @apply antialiased;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-card {
+  animation: fade-in-up 0.4s ease-out both;
+}

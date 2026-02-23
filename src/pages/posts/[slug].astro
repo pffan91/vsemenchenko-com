@@ -1,0 +1,96 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import PostCover from '../../components/PostCover.astro';
+import TableOfContents from '../../components/post/TableOfContents.astro';
+import ReadingProgressBar from '../../components/post/ReadingProgressBar.astro';
+import RelatedPosts from '../../components/post/RelatedPosts.astro';
+import AuthorBio from '../../components/post/AuthorBio.astro';
+import { formatDate } from '../../utils/format-date';
+import { getRelatedPosts } from '../../utils/posts';
+import CodeBlock from '../../components/mdx/CodeBlock.astro';
+import ZoomImage from '../../components/mdx/ZoomImage.astro';
+import NewsletterBlock from '../../components/NewsletterBlock.astro';
+import JsonLd from '../../components/seo/JsonLd.astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { title, description, publishDate, updatedDate, coverImage, tags } = post.data;
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
+const relatedPosts = await getRelatedPosts(post.id, tags);
+---
+
+<PostLayout title={title} description={description}>
+  <Fragment slot="head">
+    <JsonLd
+      type="article"
+      title={title}
+      description={description}
+      publishDate={publishDate}
+      updatedDate={updatedDate}
+      url={Astro.url.href}
+    />
+  </Fragment>
+
+  <Fragment slot="header">
+    <ReadingProgressBar />
+    <div class="max-w-prose">
+      <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+        {updatedDate && (
+          <>
+            <span aria-hidden="true">&middot;</span>
+            <span>Updated {formatDate(updatedDate)}</span>
+          </>
+        )}
+        {remarkPluginFrontmatter.minutesRead && (
+          <>
+            <span aria-hidden="true">&middot;</span>
+            <span>{remarkPluginFrontmatter.minutesRead}</span>
+          </>
+        )}
+      </div>
+      <h1 class="mt-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+        {title}
+      </h1>
+      <div class="mt-4 flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <a
+            href={`/tags/${tag}`}
+            class="rounded-full bg-accent-50 px-3 py-1 text-xs font-medium text-accent-700 transition-colors hover:bg-accent-100 dark:bg-accent-950 dark:text-accent-300 dark:hover:bg-accent-900"
+          >
+            {tag}
+          </a>
+        ))}
+      </div>
+    </div>
+    <PostCover
+      coverImage={coverImage}
+      title={title}
+      slug={post.id}
+      width={960}
+      height={504}
+      class="mt-8 w-full rounded-xl object-cover"
+    />
+  </Fragment>
+
+  <Content components={{ pre: CodeBlock, img: ZoomImage }} />
+
+  <Fragment slot="sidebar">
+    <TableOfContents headings={headings} />
+  </Fragment>
+
+  <Fragment slot="footer">
+    <NewsletterBlock />
+    <AuthorBio />
+    <RelatedPosts posts={relatedPosts} />
+  </Fragment>
+</PostLayout>

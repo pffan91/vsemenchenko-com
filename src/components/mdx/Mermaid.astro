@@ -1,0 +1,96 @@
+---
+interface Props {
+  chart: string;
+  maxWidth?: string;
+}
+
+const { chart, maxWidth } = Astro.props;
+---
+
+<div class="mermaid-container not-prose my-6 flex flex-col items-center cursor-pointer transition-opacity hover:opacity-80" role="button" tabindex="0" aria-label="Click to zoom diagram" data-chart={chart} data-max-width={maxWidth}>
+  <pre class="mermaid-fallback overflow-x-auto rounded-lg bg-zinc-100 p-4 text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{chart}</pre>
+</div>
+
+<script is:inline>
+  (function () {
+    if (window.__mermaidLoading) return;
+    window.__mermaidLoading = true;
+
+    var isDark = document.documentElement.classList.contains('dark');
+
+    // Create a single shared zoom dialog
+    var dialog = document.createElement('dialog');
+    dialog.className = 'mermaid-zoom-dialog fixed inset-0 z-50 m-0 h-full w-full max-w-full max-h-full open:grid place-items-center bg-transparent p-6 backdrop:bg-zinc-900/80';
+    dialog.innerHTML =
+      '<div class="relative w-full max-w-5xl">' +
+        '<button class="absolute -top-10 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white shadow-lg hover:bg-zinc-700 transition-colors focus:outline-none" aria-label="Close zoom">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' +
+        '</button>' +
+        '<div class="mermaid-zoom-content flex items-center justify-center [&>svg]:max-h-[85vh] [&>svg]:max-w-full"></div>' +
+      '</div>';
+    document.body.appendChild(dialog);
+
+    var zoomContent = dialog.querySelector('.mermaid-zoom-content');
+    var closeBtn = dialog.querySelector('button[aria-label="Close zoom"]');
+
+    closeBtn.addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', function () {
+      if (document.activeElement) document.activeElement.blur();
+    });
+
+    import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
+      .then(function (mod) {
+        var mermaid = mod.default;
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'default',
+        });
+
+        var containers = document.querySelectorAll('.mermaid-container[data-chart]');
+
+        containers.forEach(function (container, i) {
+          var chart = container.getAttribute('data-chart');
+          var id = 'mermaid-' + i + '-' + Date.now();
+          mermaid.render(id, chart).then(function (result) {
+            var fallback = container.querySelector('.mermaid-fallback');
+            if (fallback) fallback.remove();
+            var div = document.createElement('div');
+            div.style.width = container.getAttribute('data-max-width') || '100%';
+            div.innerHTML = result.svg;
+            container.appendChild(div);
+
+            var svg = div.querySelector('svg');
+            if (svg) {
+              svg.style.maxWidth = '100%';
+              svg.style.height = 'auto';
+            }
+
+            // Zoom on click or Enter/Space key
+            function openZoom() {
+              var svg = container.querySelector('svg');
+              if (!svg) return;
+              var clone = svg.cloneNode(true);
+              clone.removeAttribute('width');
+              clone.removeAttribute('height');
+              clone.style.width = '100%';
+              clone.style.height = 'auto';
+              clone.style.maxWidth = '100%';
+              zoomContent.replaceChildren(clone);
+              dialog.showModal();
+            }
+
+            container.addEventListener('click', openZoom);
+            container.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openZoom();
+              }
+            });
+          });
+        });
+      });
+  })();
+</script>

@@ -1,0 +1,55 @@
+---
+interface Props {
+  id: string;
+  title?: string;
+}
+
+const { id, title = 'YouTube video' } = Astro.props;
+const thumbnailUrl = `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
+---
+
+<div
+  class="youtube-facade not-prose group relative my-6 aspect-video w-full cursor-pointer overflow-hidden rounded-xl bg-zinc-900"
+  data-youtube-id={id}
+  data-youtube-title={title}
+  role="button"
+  tabindex="0"
+  aria-label={`Play video: ${title}`}
+>
+  <img
+    src={thumbnailUrl}
+    alt={title}
+    loading="lazy"
+    class="h-full w-full object-cover transition-opacity group-hover:opacity-80"
+  />
+  <!-- Play button -->
+  <div class="absolute inset-0 flex items-center justify-center">
+    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 shadow-lg transition-transform group-hover:scale-110">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  document.querySelectorAll('.youtube-facade').forEach(function (el) {
+    function loadIframe() {
+      var id = el.getAttribute('data-youtube-id');
+      var title = el.getAttribute('data-youtube-title');
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1';
+      iframe.title = title;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.loading = 'lazy';
+      iframe.className = 'absolute inset-0 h-full w-full';
+      el.textContent = '';
+      el.appendChild(iframe);
+    }
+    el.addEventListener('click', loadIframe);
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadIframe(); }
+    });
+  });
+</script>

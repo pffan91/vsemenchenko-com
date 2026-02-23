@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/projects/ProjectCard.astro';
+import { getPublishedProjects } from '../../utils/projects';
+
+const projects = await getPublishedProjects();
+---
+
+<BaseLayout title="Projects — Vladyslav Semenchenko" description="A selection of iOS apps and software projects I've built and contributed to over 12+ years of engineering.">
+  <section class="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:pt-16 sm:pb-16">
+    <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+      Projects
+    </h1>
+    <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+      A selection of apps and systems I've built over 12+ years as an iOS engineer - from consumer products with hundreds of thousands of users to internal tools and open-source libraries.
+    </p>
+
+    <div class="mt-8 grid gap-6 sm:grid-cols-2">
+      {projects.map((project, i) => (
+        <ProjectCard project={project} index={i} />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

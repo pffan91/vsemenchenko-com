@@ -1,0 +1,44 @@
+---
+import { Image } from 'astro:assets';
+import { generateCoverGradient } from '../utils/cover-gradient';
+
+interface Props {
+  coverImage?: ImageMetadata;
+  title: string;
+  slug: string;
+  width: number;
+  height: number;
+  class?: string;
+}
+
+const { coverImage, title, slug, width, height, class: className } = Astro.props;
+
+const baseFontSize = 30;
+const widthScale = width / 960;
+const lengthScale = Math.sqrt(40 / Math.max(title.length, 1));
+const fontSize = Math.round(
+  Math.max(14, Math.min(baseFontSize * widthScale * lengthScale, 48))
+);
+---
+
+{coverImage ? (
+  <Image
+    src={coverImage}
+    alt={title}
+    width={width}
+    height={height}
+    class={className}
+    loading="lazy"
+  />
+) : (
+  <div
+    class:list={["flex items-center justify-center aspect-[1.91/1]", className]}
+    style={`background: ${generateCoverGradient(slug)};`}
+    role="img"
+    aria-label={`Cover for ${title}`}
+  >
+    <span class="px-8 text-center font-bold leading-snug text-white" style={`font-size: ${fontSize}px`}>
+      {title}
+    </span>
+  </div>
+)}

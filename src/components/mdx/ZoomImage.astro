@@ -1,0 +1,57 @@
+---
+import { Image } from 'astro:assets';
+
+const { src, alt, class: className, ...rest } = Astro.props;
+---
+
+<Image src={src} alt={alt || ''} {...rest} class:list={[className, 'cursor-pointer transition-opacity hover:opacity-80']} role="button" tabindex="0" aria-label="Click to zoom image" data-zoomable />
+
+<script is:inline>
+  (function () {
+    if (window.__imageZoomReady) return;
+    window.__imageZoomReady = true;
+
+    var dialog = document.createElement('dialog');
+    dialog.className = 'image-zoom-dialog fixed inset-0 z-50 m-0 h-full w-full max-w-full max-h-full open:grid place-items-center bg-transparent p-6 backdrop:bg-zinc-900/80';
+    dialog.innerHTML =
+      '<div class="relative">' +
+        '<button class="absolute -top-10 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800 text-white shadow-lg hover:bg-zinc-700 transition-colors focus:outline-none" aria-label="Close zoom">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' +
+        '</button>' +
+        '<img class="image-zoom-content max-h-[85vh] max-w-full rounded-lg" />' +
+      '</div>';
+    document.body.appendChild(dialog);
+
+    var zoomImg = dialog.querySelector('.image-zoom-content');
+    var closeBtn = dialog.querySelector('button[aria-label="Close zoom"]');
+
+    closeBtn.addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', function () {
+      if (document.activeElement) document.activeElement.blur();
+    });
+
+    function openZoom(img) {
+      zoomImg.src = img.src;
+      zoomImg.alt = img.alt || '';
+      dialog.showModal();
+    }
+
+    document.addEventListener('click', function (e) {
+      var img = e.target.closest('img[data-zoomable]');
+      if (img) openZoom(img);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        var img = e.target.closest('img[data-zoomable]');
+        if (img) {
+          e.preventDefault();
+          openZoom(img);
+        }
+      }
+    });
+  })();
+</script>

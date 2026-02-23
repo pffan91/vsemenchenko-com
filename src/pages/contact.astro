@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/ContactForm';
+---
+
+<BaseLayout title="Contact — Vladyslav Semenchenko" description="Get in touch with Vladyslav Semenchenko.">
+  <section class="mx-auto max-w-5xl px-4 pt-12 pb-12 sm:pt-16 sm:pb-16">
+    <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-4xl">
+      Get in Touch
+    </h1>
+    <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+      Have a question, project idea, or just want to say hello? Fill out the form below
+      and I'll get back to you as soon as possible.
+    </p>
+
+    <div class="mt-10">
+      <ContactForm client:load />
+    </div>
+  </section>
+</BaseLayout>

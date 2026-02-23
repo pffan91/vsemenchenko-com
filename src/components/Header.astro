@@ -1,0 +1,88 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+import SearchModal from './SearchModal';
+
+const navLinks = [
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/posts', label: 'Posts' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="sticky top-0 z-40 border-b border-zinc-200 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80" data-pagefind-ignore>
+  <nav class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3" aria-label="Main navigation">
+    <a href="/" class="text-base font-bold text-zinc-900 dark:text-zinc-100 sm:text-lg whitespace-nowrap">
+      Vladyslav Semenchenko
+    </a>
+
+    <div class="flex items-center gap-1">
+      <!-- Desktop nav -->
+      <ul class="hidden items-center gap-1 md:flex">
+        {navLinks.map(({ href, label }) => (
+          <li>
+            <a
+              href={href}
+              class:list={[
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                currentPath === href || currentPath.startsWith(href)
+                  ? 'text-accent-600 dark:text-accent-400'
+                  : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100',
+              ]}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Divider (desktop only) -->
+      <div class="mx-1 hidden h-5 w-px bg-zinc-300 dark:bg-zinc-700 md:block" aria-hidden="true"></div>
+
+      <!-- Search trigger -->
+      <button
+        id="search-trigger"
+        aria-label="Search"
+        class="rounded-md p-2 text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </button>
+
+      <ThemeToggle />
+
+      <!-- Mobile menu -->
+      <details class="relative md:hidden">
+        <summary class="list-none rounded-md p-2 text-zinc-600 transition-colors hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100" aria-label="Toggle menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" x2="20" y1="12" y2="12"></line>
+            <line x1="4" x2="20" y1="6" y2="6"></line>
+            <line x1="4" x2="20" y1="18" y2="18"></line>
+          </svg>
+        </summary>
+        <ul class="absolute right-0 top-full mt-2 w-48 rounded-lg border border-zinc-200 bg-zinc-50 p-2 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          {navLinks.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                class:list={[
+                  'block rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  currentPath === href || currentPath.startsWith(href)
+                    ? 'text-accent-600 dark:text-accent-400'
+                    : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100',
+                ]}
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  </nav>
+  <SearchModal client:idle />
+</header>

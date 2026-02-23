@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import RecentPosts from '../components/home/RecentPosts.astro';
+import JsonLd from '../components/seo/JsonLd.astro';
+---
+
+<BaseLayout title="Vladyslav Semenchenko — Senior iOS Engineer">
+  <Fragment slot="head">
+    <JsonLd type="person" />
+  </Fragment>
+  <Hero />
+  <RecentPosts />
+</BaseLayout>
