@@ -12,13 +12,15 @@ import Mermaid from '../../components/mdx/Mermaid.astro';
 
 # When UIMenu Isn't Enough: Building a Custom Context Menu in UIKit
 
-`UIMenu` handled every context menu in my app — until one screen needed this row layout:
+Seven context menus across the app. All `UIMenu`. All fine — until a data list screen needed per-row status: colored badges, state text, right-aligned metadata. Each row could be ready, pending, or expired, and the menu had to reflect that at a glance.
 
 ![Custom context menu row showing a badge icon, colored status text, and right-aligned metadata](./_images/when-uimenu-isnt-enough/context-menu-sample.png)
 
-A colored status badge on the left. Colored status text in the middle. A right-aligned metadata column. Three things `UIAction` simply cannot express. I tried SF Symbol tinting on the image property, attributed strings on the title — none of it gives you per-element color control or a multi-column layout inside a single menu row. The image tint colored the entire symbol — you can't target just the fill. Attributed strings on `UIAction.title` get flattened to plain text by UIKit.
+A colored status badge on the left. Colored status text in the middle. A right-aligned metadata column. Three things `UIAction` simply cannot express.
 
-So I built my own. Three files, one job each, and the whole thing still *feels* native because it piggybacks on `UIContextMenuInteraction` for long-press detection and haptics.
+First attempt: SF Symbol tinting on the `image` property. The tint colored the entire symbol — you can't target just the badge fill. Second: attributed strings on `UIAction.title`. UIKit flattens them to plain text. No color, no font variation, no layout control. The core problem is that `UIAction`'s layout model is fundamentally single-column — there's no way to compose multiple independently styled elements inside a single row.
+
+So I built my own — under one requirement: it had to feel native. Same long-press, same haptic, same dimming. Users shouldn't know the difference. Three files, one job each, and the whole thing piggybacks on `UIContextMenuInteraction` for gesture recognition and haptics.
 
 Let's get into it.
 
@@ -41,9 +43,7 @@ import UIKit
 // MARK: - Width Mode
 
 enum ContextMenuWidthMode {
-    /// Automatically calculate width based on content
-    case auto
-    /// Fixed width (e.g., 250pt like native UIMenu)
+    case auto(minWidth: CGFloat = 260)
     case fixed(CGFloat)
 
     var defaultWidth: CGFloat {
@@ -70,6 +70,12 @@ enum ContextMenuBadge {
 
 // MARK: - Menu Item
 
+/// A single row in the custom context menu.
+///
+/// **Layout** (left to right):
+/// ```
+/// [ badge | title | spacer | statusText | detail ]
+/// ```
 struct ContextMenuItem {
     let id = UUID()
     let badge: ContextMenuBadge?
@@ -101,6 +107,7 @@ struct ContextMenuItem {
 
 // MARK: - Configuration
 
+/// All the information needed to present a custom context menu.
 struct ContextMenuConfiguration {
     let items: [ContextMenuItem]
     let sourceRect: CGRect
@@ -111,7 +118,7 @@ struct ContextMenuConfiguration {
         items: [ContextMenuItem],
         sourceRect: CGRect,
         sourceView: UIView,
-        widthMode: ContextMenuWidthMode = .fixed(250)
+        widthMode: ContextMenuWidthMode = .fixed(260)
     ) {
         self.items = items
         self.sourceRect = sourceRect
@@ -121,7 +128,9 @@ struct ContextMenuConfiguration {
 }
 ```
 
-A few non-obvious choices here. The `action: () -> Void` closure lives directly on the model — this keeps the configuration site clean because the caller builds both the data *and* the behavior in one place, rather than wiring up a delegate or target-action later. The `ContextMenuWidthMode` enum exists because `.auto` needs to measure text at runtime (more on that in the VC section), while `.fixed` avoids that cost when you already know the layout.
+A few non-obvious choices here. The `action: () -> Void` closure lives directly on the model — this keeps the configuration site clean because the caller builds both the data *and* the behavior in one place, rather than wiring up a delegate or target-action later. It also means the `ContextMenuItem` struct is the only contract someone on the team needs to understand — add a new menu item without ever opening the view controller file. And because the action closure is the only side effect, you can test your configuration builder in isolation: assert that the right items appear for the right data state without presenting any UI.
+
+The `ContextMenuWidthMode` enum exists because `.auto` needs to measure text at runtime (more on that in the VC section), while `.fixed` avoids that cost when you already know the layout.
 
 ## Hijacking UIContextMenuInteraction
 
@@ -209,13 +218,13 @@ The `DispatchQueue.main.async` is not optional. When the delegate method fires, 
 
 ## The menu view controller
 
-The full view controller is ~340 lines, most of it standard UIKit plumbing. Here's the shape: `init` sets `.overFullScreen` (so the presenting VC's view stays visible behind a 40% black scrim) and `.crossDissolve` (a subtle fade, not a sheet slide). `setupView()` adds the dimming background, a rounded container with shadow, and a tap gesture for dismissal — `handleBackgroundTap` hit-tests against `containerView.frame`, so tapping *inside* the menu doesn't accidentally close it. `setupMenuItems()` loops through items, inserting separators between them. And `handleItemTap` dismisses first, *then* fires the action in the completion block — this matters if the action presents another modal, because UIKit won't let you present on top of a VC that's mid-dismissal.
+The full view controller is ~340 lines, mostly layout and presentation setup. `init` sets `.overFullScreen` (so the presenting VC's view stays visible behind a 40% black scrim) and `.crossDissolve` (a subtle fade, not a sheet slide). `setupView()` adds the dimming background, a rounded container with shadow, and a tap gesture for dismissal — `handleBackgroundTap` hit-tests against `containerView.frame`, so tapping *inside* the menu doesn't accidentally close it. `setupMenuItems()` loops through items, inserting separators between them. And `handleItemTap` dismisses first, *then* fires the action in the completion block — this matters if the action presents another modal, because UIKit won't let you present on top of a VC that's mid-dismissal.
 
 The two pieces worth reading inline are the item builder and the positioning logic. For the complete implementation, see the [sample project on GitHub](https://github.com/pffan91/CustomContextMenu).
 
 ### Building menu items
 
-Each row is a horizontal `UIStackView`: badge → title → spacer → status label → detail label. Before building the rows, `setupMenuItems()` pre-calculates `maxDetailWidth` — the widest detail string measured with the monospaced digit font — so every row's detail label gets the same fixed-width constraint, keeping the column aligned.
+The row layout is a flat `UIStackView` — badge, title, spacer, status, detail. No nesting, which keeps Auto Layout from fighting over priorities when optional elements are absent. Before building the rows, `setupMenuItems()` pre-calculates `maxDetailWidth` — the widest detail string measured with the monospaced digit font — so every row's detail label gets the same fixed-width constraint, keeping the column aligned.
 
 ```swift
 private func createMenuItemView(for item: ContextMenuItem, maxDetailWidth: CGFloat) -> UIView {
@@ -311,8 +320,8 @@ private func createMenuItemView(for item: ContextMenuItem, maxDetailWidth: CGFlo
 
     NSLayoutConstraint.activate([
         hStack.topAnchor.constraint(equalTo: itemView.topAnchor, constant: 12),
-        hStack.leadingAnchor.constraint(equalTo: itemView.leadingAnchor, constant: 16),
-        hStack.trailingAnchor.constraint(equalTo: itemView.trailingAnchor, constant: -16),
+        hStack.leadingAnchor.constraint(equalTo: itemView.leadingAnchor, constant: 12),
+        hStack.trailingAnchor.constraint(equalTo: itemView.trailingAnchor, constant: -12),
         hStack.bottomAnchor.constraint(equalTo: itemView.bottomAnchor, constant: -12),
         itemView.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
     ])
@@ -321,7 +330,7 @@ private func createMenuItemView(for item: ContextMenuItem, maxDetailWidth: CGFlo
 }
 ```
 
-Monospaced digit fonts keep the detail column aligned as values change — "2.4" and "12.8" occupy the same width. The detail label uses a fixed-width constraint (`maxDetailWidth`) so that values of different lengths still right-align into a clean column. Status and detail labels hug at `.required` so the title truncates first, which is correct behavior for variable-width content.
+Monospaced digit fonts keep the detail column aligned as values change — "2.4" and "12.8" occupy the same width. The detail label uses a fixed-width constraint (`maxDetailWidth`) so that values of different lengths still right-align into a clean column. Status and detail labels hug at `.required` so the title truncates first, which is correct behavior for variable-width content. Each row also sets `isAccessibilityElement = true` with a compound `accessibilityLabel` built from title, status, and detail — so VoiceOver reads the full context in one pass rather than stepping through individual labels.
 
 ### Smart positioning through the window coordinate system
 
@@ -386,11 +395,11 @@ private func positionMenu() {
 
 *Default: below the source rect. Fallback: flip above when there's no room. Horizontal clamping keeps it 16pt from screen edges.*
 
-One more thing worth mentioning: `calculateAutoWidth()`. When the width mode is `.auto`, this method iterates every item, measures each text segment (`title`, `statusText`, `detail`) with `NSString.size(withAttributes:)` using the same fonts as `createMenuItemView`, adds up the padding and badge space, and clamps the result to 200–350pt. The fonts in both methods must stay in sync — if you change one, change the other. See the [full implementation in the sample project](https://github.com/pffan91/CustomContextMenu).
+One more thing worth mentioning: `calculateAutoWidth()`. When the width mode is `.auto`, this method iterates every item, measures each text segment (`title`, `statusText`, `detail`) with `NSString.size(withAttributes:)` using the same fonts as `createMenuItemView`, adds up the padding and badge space, and clamps the result to configuration.minAutoWidth–350pt. The fonts in both methods must stay in sync — if you change one, change the other. See the [full implementation in the sample project](https://github.com/pffan91/CustomContextMenu).
 
 ## Wiring it up
 
-Here's how the three pieces connect. You attach the `CustomContextMenu` to your table view, and the configuration provider closure maps each long-press location to a set of context-aware menu items:
+The integration point is the `configurationProvider` closure. You hand `CustomContextMenu` a regular view or a table view and a closure that maps each long-press location to menu items. Everything else — haptics, presentation, positioning — happens behind that closure:
 
 ```swift
 class ViewController: UIViewController {
@@ -399,51 +408,33 @@ class ViewController: UIViewController {
     private let tableView = UITableView()
 
     private func setupContextMenu() {
-        contextMenu = CustomContextMenu()
-        contextMenu?.attach(to: tableView) { [weak self] location in
-            guard let self,
-                  let indexPath = self.tableView.indexPathForRow(at: location)
-            else { return nil }
+        regularViewMenu = CustomContextMenu()
+        regularViewMenu?.attach(to: tableView) { [weak self] location in
+            guard let self else { return nil }
 
-            let file = self.files[indexPath.row]
-
-            var items: [ContextMenuItem] = []
-
-            items.append(ContextMenuItem(
-                badge: file.isReady ? .ready : .pending,
-                title: "Download",
-                statusText: file.isReady ? "Ready" : "Pending",
-                statusColor: file.isReady ? ContextMenuBadge.ready.color : ContextMenuBadge.pending.color,
-                detail: file.formattedSize,
-                detailColor: .systemGray,
-                action: { [weak self] in
-                    self?.downloadFile(file)
-                }
-            ))
+            var items: [ContextMenuItem] = FileItem.mockVideos.map { video in
+                ContextMenuItem(
+                    badge: video.isReady ? .ready : .pending,
+                    title: video.name,
+                    statusText: video.isReady ? "Ready" : "Pending",
+                    statusColor: video.isReady ? ContextMenuBadge.ready.color : ContextMenuBadge.pending.color,
+                    detail: video.formattedSize,
+                    detailColor: UIColor(red: 0.53, green: 0.54, blue: 0.58, alpha: 1.00),
+                    action: { [weak self] in
+                        self?.downloadFile(video)
+                    }
+                )
+            }
 
             items.append(ContextMenuItem(
                 title: "Share",
-                statusText: file.isShared ? "Public" : nil,
-                statusColor: .systemBlue,
-                action: { [weak self] in
-                    self?.shareFile(file)
-                }
+                action: { print("Share tapped") }
             ))
 
-            items.append(ContextMenuItem(
-                title: "Delete",
-                statusText: "Permanent",
-                statusColor: .systemRed,
-                action: { [weak self] in
-                    self?.confirmDelete(file)
-                }
-            ))
-
-            let cellRect = self.tableView.rectForRow(at: indexPath)
             return ContextMenuConfiguration(
                 items: items,
-                sourceRect: cellRect,
-                sourceView: self.tableView,
+                sourceRect: CGRect(origin: location, size: .zero),
+                sourceView: self.regularContainerView,
                 widthMode: .auto
             )
         }
@@ -451,7 +442,9 @@ class ViewController: UIViewController {
 }
 ```
 
-The closure returns `nil` when no menu should appear (e.g., the user long-pressed empty space below the last row). When it returns a configuration, the `CustomContextMenu` handles everything else — haptics, presentation, positioning. Here is the final result:
+The closure returns `nil` when no menu should appear (e.g., the user long-pressed empty space below the last row, see the [table view implementation in the sample project](https://github.com/pffan91/CustomContextMenu)). When it returns a configuration, the `CustomContextMenu` handles everything else — haptics, presentation, positioning.
+
+This is also where the architecture pays off for a team. The `configurationProvider` closure means any screen can adopt this menu by building its own `ContextMenuItem` array — you configure, not subclass. The models live in one file, the interaction handler in another, the view controller in a third. Someone adding a new context menu to a different screen doesn't need to read the positioning logic or understand the `UIContextMenuInteraction` trick. They build items, return a configuration, done.
 
 ![Final custom context menu](./_images/when-uimenu-isnt-enough/context-menu-final.png)
 
@@ -490,11 +483,13 @@ override func viewWillTransition(
 
 **4. rootViewController chain.** `targetView.window?.rootViewController` won't work if root is already presenting another modal. If your app uses a tab bar or navigation controller as root and presents sheets frequently, walk the `presentedViewController` chain to find the topmost one, or present from the view's nearest ancestor view controller instead.
 
-Clean and correct.
+One thing I'd add if this were shipping on a team project: a snapshot test for the menu positioning. The coordinate conversion logic (source view → window → modal) is the kind of thing that breaks silently when someone changes the view hierarchy upstream. A snapshot test on two device sizes catches that before it hits QA.
 
 ## Wrapping up
 
 You now have three files with clear responsibilities: models that describe what to show, an interaction handler that bridges native gesture recognition to custom presentation, and a view controller that builds the actual menu UI with full layout control. No private API usage, no swizzling — just `UIContextMenuInteraction` doing what it was designed to do, minus the part where it renders the menu.
+
+When another screen needed a similar menu two weeks later, the second integration took twenty minutes. The models are the contract; the wiring is a closure. That's the test for any custom component — does the second use cost less than the first?
 
 Use this when `UIMenu` can't express your row layout. For everything else, stick with native. The best custom UI is the one you don't have to build.
 
@@ -503,9 +498,9 @@ Use this when `UIMenu` can't express your row layout. For everything else, stick
 A few directions to take this further:
 
 - **Submenus** — add a `children: [ContextMenuItem]?` property for expandable sections within the menu. Animate the container height change on tap.
-- **Swipe actions on menu items** — attach a `UIPanGestureRecognizer` to individual rows for quick-action gestures (swipe-to-delete, swipe-to-favorite).
 - **Dynamic Type support** — replace the hardcoded font sizes with `UIFont.preferredFont(forTextStyle:)` and respond to `traitCollectionDidChange` for accessibility.
-- **Spring animation** — swap the linear fade-in for a scale+fade spring animation to match the iOS 17+ native menu feel. `UIView.animate(springDuration:bounce:)` makes this trivial.
+- **Full accessibility audit** — the menu already sets `isAccessibilityElement` and builds compound `accessibilityLabel` strings, but I haven't tested it with Switch Control or Full Keyboard Access. Those interaction models are fundamentally different from VoiceOver.
+- **iPad adaptation** — `UIContextMenuInteraction` behaves differently in multitasking and pointer environments. The positioning logic needs a separate pass for larger screens with pointer hover support.
 
 ---
 
